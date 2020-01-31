@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+	<name>Ratingcaptain</name>
+	<displayName><![CDATA[Rating Captain]]></displayName>
+	<version><![CDATA[2.3.4]]></version>
+	<description><![CDATA[Integrate your e-commerce with RatingCaptain system]]></description>
+	<author><![CDATA[Mateusz Bielak]]></author>
+	<tab><![CDATA[Mateusz Bielak]]></tab>
+	<confirmUninstall><![CDATA[Are you sure you want uninstall ratingcaptain? your orders will not be more synchronized...]]></confirmUninstall>
+	<is_configurable>1</is_configurable>
+	<need_instance>1</need_instance>
+</module>
