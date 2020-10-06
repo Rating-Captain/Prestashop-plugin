@@ -53,7 +53,7 @@ class Ratingcaptain extends Module
 	{
  /*       $this->registerHook('actionOrderStatusPostUpdate');
         $this->registerHook('orderConfirmation');*/
-	    if(!parent::install() || !$this->registerHook('displayFooterAfter') || $this->registerHook('orderConfirmation') || $this->registerHook('actionOrderStatusPostUpdate'))return false;
+	    if(!parent::install() || !$this->registerHook('displayFooterAfter') || $this->registerHook('orderConfirmation')) return true;
 	    return true;
 	}
     public function getContent()
