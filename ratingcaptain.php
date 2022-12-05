@@ -43,7 +43,6 @@ class Ratingcaptain extends Module
 		$this->displayName = $this->l('Rating Captain');
 		$this->description = $this->l('Integrate your e-commerce with RatingCaptain system');
 		$this->confirmUninstall = $this->l('Are you sure you want uninstall ratingcaptain? your orders will not be more synchronized...');
-
 		/*if (version_compare(_PS_VERSION_, '1.5', '<'))
 			require(_PS_MODULE_DIR_.$this->name.'/backward_compatibility/backward.php');*/
 
@@ -87,17 +86,23 @@ class Ratingcaptain extends Module
     protected function sendToRating($order){
         if($api = Configuration::get('Ratingcaptain_api_key')){
             if($order){
+                $protocol_link = Configuration::get('PS_SSL_ENABLED') || Tools::usingSecureMode() ? 'https://' : 'http://';
+                $use_ssl = Configuration::get('PS_SSL_ENABLED') || Tools::usingSecureMode() ? true : false;
+                $protocol_content = $use_ssl ? 'https://' : 'http://';
                 $ratingcaptain = new RatingCaptain_client($api);
                 if(Configuration::get('Ratingcaptain_products')){
                     $products = $order->getProducts();
                     foreach ($products as $product){
-                        $product = new Product($product['product_id']);
-                        $ratingcaptain->addProduct($product->id, $product->name, Product::getPriceStatic($product->id), Product::getCover($product->id), $product->description);
+                        $product = new Product($product['product_id'], false, Context::getContext()->language);
+                        $img = $product->getCover($product->id);
+                        $link = new Link($protocol_link, $protocol_content);
+                        $img_url = $link->getImageLink(isset($product->link_rewrite) ? $product->link_rewrite : $product->name, (int)$img['id_image'], 'home_default');
+                        $ratingcaptain->addProduct($product->id, $product->name, Product::getPriceStatic($product->id), $img_url, strip_tags($product->description));
                     }
                 }
                 $id_customer=$order->id_customer;
                 $customer= new Customer((int)$id_customer);
-                $ord = ["external_id" => $order->id, "email" => $customer->email, 'name' => $customer->firstname, 'surname' => $customer->lastname, 'send_date' => Date('Y-m-d H:i:s', strtotime('+5 days'))];
+                $ord = ["external_id" => $order->id, "email" => $customer->email, 'name' => $customer->firstname, 'surname' => $customer->lastname];
                 $ratingcaptain->send($ord);
             }
         }
@@ -207,4 +212,5 @@ class Ratingcaptain extends Module
 
         return $helper->generateForm($fieldsForm);
     }
+
 }

@@ -6,13 +6,14 @@ class RatingCaptain_client{
     {
         $this->apiKey = $apiKey;
     }
-    public function addProduct($id, $name, $price = null, $imageUrl = null, $desc = null){
+    public function addProduct($id, $name, $price = null, $imageUrl = null, $desc = null, $product_link = null){
         array_push($this->products, [
             'id' => $id,
             'name' => $name,
             'price' => $price,
             'imageUrl' => $imageUrl,
-            'desc' => $desc
+            'desc' => $desc,
+            'url' => $product_link
         ]);
     }
     private function curl($data, $method = 'post', $url){
@@ -20,11 +21,16 @@ class RatingCaptain_client{
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         if($method == 'post'){
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['data' => $data]));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Accept: application/json',
+                'Content-Type: application/json'
+            ));
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         }
-        $response = curl_exec($ch);
+        $result = curl_exec($ch);
         curl_close($ch);
-        return $response;
+
+        return $result;
     }
     public function send($data){
         $data['hash'] = $this->apiKey;
@@ -40,6 +46,7 @@ class RatingCaptain_client{
         $this->order['hash'] = $this->apiKey;
         $arr = $this->order;
         if(count($this->products) > 0) $arr['products'] = $this->products;
+
         return $this->curl(json_encode($arr), 'post', $this->store_url);
     }
     public function deleteOrder($id){
