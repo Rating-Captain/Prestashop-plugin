@@ -25,36 +25,36 @@
  */
 
 if (!defined('_PS_VERSION_'))
-	exit;
+    exit;
 require (__DIR__.'/external/RatingCaptain_client.php');
 class Ratingcaptain extends Module
 {
-	public function __construct()
-	{
-		$this->name = 'ratingcaptain';
-		$this->tab = 'ratingcaptain';
-		$this->version = '2.3.4';
-		$this->author = 'Mateusz Bielak';
-		$this->bootstrap = true;
+    public function __construct()
+    {
+        $this->name = 'ratingcaptain';
+        $this->tab = 'ratingcaptain';
+        $this->version = '2.3.4';
+        $this->author = 'Mateusz Bielak';
+        $this->bootstrap = true;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
-		parent::__construct();
+        parent::__construct();
 
-		$this->need_instance = 1;
-		$this->displayName = $this->l('Rating Captain');
-		$this->description = $this->l('Integrate your e-commerce with RatingCaptain system');
-		$this->confirmUninstall = $this->l('Are you sure you want uninstall ratingcaptain? your orders will not be more synchronized...');
-		/*if (version_compare(_PS_VERSION_, '1.5', '<'))
-			require(_PS_MODULE_DIR_.$this->name.'/backward_compatibility/backward.php');*/
+        $this->need_instance = 1;
+        $this->displayName = $this->l('Rating Captain');
+        $this->description = $this->l('Integrate your e-commerce with RatingCaptain system');
+        $this->confirmUninstall = $this->l('Are you sure you want uninstall ratingcaptain? your orders will not be more synchronized...');
+        /*if (version_compare(_PS_VERSION_, '1.5', '<'))
+            require(_PS_MODULE_DIR_.$this->name.'/backward_compatibility/backward.php');*/
 
-	}
+    }
 
-	public function install()
-	{
- /*       $this->registerHook('actionOrderStatusPostUpdate');
-        $this->registerHook('orderConfirmation');*/
-	    if(!parent::install() || !$this->registerHook('displayFooterAfter') || $this->registerHook('orderConfirmation')) return true;
-	    return true;
-	}
+    public function install()
+    {
+        /*       $this->registerHook('actionOrderStatusPostUpdate');
+               $this->registerHook('orderConfirmation');*/
+        if(!parent::install() || !$this->registerHook('displayFooterAfter') || $this->registerHook('orderConfirmation')) return true;
+        return true;
+    }
     public function getContent()
     {
         $output = null;
@@ -79,9 +79,9 @@ class Ratingcaptain extends Module
         return $output.$this->displayForm();
     }
     public function hookActionOrderStatusPostUpdate($order){
-	    $order = new Order($order['id_order']);
-	    $this->sendToRating($order);
-	    return true;
+        $order = new Order($order['id_order']);
+        $this->sendToRating($order);
+        return true;
     }
     protected function sendToRating($order){
         if($api = Configuration::get('Ratingcaptain_api_key')){
@@ -93,7 +93,7 @@ class Ratingcaptain extends Module
                 if(Configuration::get('Ratingcaptain_products')){
                     $products = $order->getProducts();
                     foreach ($products as $product){
-                        $product = new Product($product['product_id'], false, Context::getContext()->language);
+                        $product = new Product($product['product_id'], false, Context::getContext()->language->id);
                         $img = $product->getCover($product->id);
                         $link = new Link($protocol_link, $protocol_content);
                         $img_url = $link->getImageLink(isset($product->link_rewrite) ? $product->link_rewrite : $product->name, (int)$img['id_image'], 'home_default');
@@ -108,22 +108,22 @@ class Ratingcaptain extends Module
         }
     }
     public function hookOrderConfirmation($params = null){
-	    $order = $params['order'];
-	    $this->sendToRating($order);
+        $order = $params['order'];
+        $this->sendToRating($order);
         return true;
     }
     public function hookDisplayFooterAfter($params){
-	    $to_return = "";
-	    if($rates_placeholder = Configuration::get('Ratingcaptain_rates_placeholder')){
-	        $to_return .= "<script>var RatingCaptain_rates_placeholder = '".$rates_placeholder."';</script>";
+        $to_return = "";
+        if($rates_placeholder = Configuration::get('Ratingcaptain_rates_placeholder')){
+            $to_return .= "<script>var RatingCaptain_rates_placeholder = '".$rates_placeholder."';</script>";
         }
-	    if($info_placeholder = Configuration::get('Ratingcaptain_info_placeholder')){
+        if($info_placeholder = Configuration::get('Ratingcaptain_info_placeholder')){
             $to_return .= "<script>var RatingCaptain_info_placeholder = '".$info_placeholder."';</script>";
         }
-	    if($api_key = Configuration::get('Ratingcaptain_api_key')){
-	        $to_return .= "<script type='text/javascript' src='https://ratingcaptain.com/api/js/".$api_key."'></script>";
+        if($api_key = Configuration::get('Ratingcaptain_api_key')){
+            $to_return .= "<script type='text/javascript' src='https://ratingcaptain.com/api/js/".$api_key."'></script>";
         }
-	    return $to_return;
+        return $to_return;
     }
 
     public function displayForm()
