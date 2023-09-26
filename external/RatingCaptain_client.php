@@ -1,19 +1,20 @@
 <?php
 class RatingCaptain_client{
     protected $apiKey, $order=array(), $products = array();
-    private $store_url = 'https://ratingcaptain.com/api/emails', $delete_url="https://ratingcaptain.com/api/website_rate/destroy";
+    private $store_url = 'https://api.ratingcaptain.com/emails', $delete_url="https://ratingcaptain.com/api/website_rate/destroy";
     public function __construct($apiKey)
     {
         $this->apiKey = $apiKey;
     }
-    public function addProduct($id, $name, $price = null, $imageUrl = null, $desc = null, $product_link = null){
+    public function addProduct($id, $name, $price = null, $imageUrl = null, $desc = null, $product_link = null, $ean = null){
         array_push($this->products, [
             'id' => $id,
             'name' => $name,
             'price' => $price,
             'imageUrl' => $imageUrl,
             'desc' => $desc,
-            'url' => $product_link
+            'product_url' => $product_link,
+            'ean' => $ean
         ]);
     }
     private function curl($data, $method = 'post', $url){
@@ -44,6 +45,7 @@ class RatingCaptain_client{
         if(array_key_exists('name', $data)) $this->order['name'] = $data['name'];
         if(array_key_exists('surname', $data)) $this->order['surname'] = $data['surname'];
         $this->order['hash'] = $this->apiKey;
+        $this->order['order_source'] = 'prestashop-plugin';
         $arr = $this->order;
         if(count($this->products) > 0) $arr['products'] = $this->products;
 

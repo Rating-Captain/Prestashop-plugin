@@ -97,7 +97,16 @@ class Ratingcaptain extends Module
                         $img = $product->getCover($product->id);
                         $link = new Link($protocol_link, $protocol_content);
                         $img_url = $link->getImageLink(isset($product->link_rewrite) ? $product->link_rewrite : $product->name, (int)$img['id_image'], 'home_default');
-                        $ratingcaptain->addProduct($product->id, $product->name, Product::getPriceStatic($product->id), $img_url, strip_tags($product->description));
+                        $product_link = (new Link())->getProductLink($product);
+                        $ratingcaptain->addProduct(
+                            $product->id,
+                            $product->name,
+                            Product::getPriceStatic($product->id),
+                            $img_url,
+                            strip_tags($product->description),
+                            $product_link,
+                            $product->ean13
+                        );
                     }
                 }
                 $id_customer=$order->id_customer;
