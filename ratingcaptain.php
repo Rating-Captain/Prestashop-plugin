@@ -50,9 +50,7 @@ class Ratingcaptain extends Module
 
     public function install()
     {
-        /*       $this->registerHook('actionOrderStatusPostUpdate');
-               $this->registerHook('orderConfirmation');*/
-        if(!parent::install() || !$this->registerHook('displayFooterAfter') || $this->registerHook('orderConfirmation')) return true;
+        if(!parent::install() || !$this->registerHook('displayFooterAfter') || !$this->registerHook('orderConfirmation') || !$this->registerHook('actionOrderStatusPostUpdate')) return true;
         return true;
     }
     public function getContent()
@@ -71,6 +69,9 @@ class Ratingcaptain extends Module
                 if(Tools::getValue('Ratingcaptain_products_') == 'on'){
                     Configuration::updateValue('Ratingcaptain_products', true);
                 }else Configuration::updateValue('Ratingcaptain_products', false);
+                if(Tools::getValue('Ratingcaptain_only_sent_') == 'on'){
+                    Configuration::updateValue('Ratingcaptain_only_sent', true);
+                }else Configuration::updateValue('Ratingcaptain_only_sent', false);
                 Configuration::updateValue('Ratingcaptain_rates_placeholder', Tools::getValue('Ratingcaptain_rates_placeholder'));
                 Configuration::updateValue('Ratingcaptain_info_placeholder', Tools::getValue('Ratingcaptain_info_placeholder'));
                 $output .= $this->displayConfirmation($this->l('Settings updated'));
@@ -78,9 +79,17 @@ class Ratingcaptain extends Module
         }
         return $output.$this->displayForm();
     }
-    public function hookActionOrderStatusPostUpdate($order){
-        $order = new Order($order['id_order']);
-        $this->sendToRating($order);
+    public function hookActionOrderStatusPostUpdate(array $hookData){
+        if(Configuration::get('Ratingcaptain_only_sent')){
+            /**
+             * @var $order_state \PrestaShop\PrestaShop\Adapter\Entity\OrderState
+             */
+            $order_state = $hookData['newOrderStatus'];
+            if($order_state->name == 'Delivered' || $order_state->name == 'Shipped'){
+                $order = new Order($hookData['id_order']);
+                $this->sendToRating($order);
+            }
+        }
         return true;
     }
     protected function sendToRating($order){
@@ -117,8 +126,10 @@ class Ratingcaptain extends Module
         }
     }
     public function hookOrderConfirmation($params = null){
-        $order = $params['order'];
-        $this->sendToRating($order);
+        if(!Configuration::get('Ratingcaptain_only_sent')){
+            $order = $params['order'];
+            $this->sendToRating($order);
+        }
         return true;
     }
     public function hookDisplayFooterAfter($params){
@@ -137,7 +148,6 @@ class Ratingcaptain extends Module
 
     public function displayForm()
     {
-
         // Get default language
         $defaultLang = (int)Configuration::get('PS_LANG_DEFAULT');
 
@@ -153,6 +163,18 @@ class Ratingcaptain extends Module
                     'name' => 'Ratingcaptain_api_key',
                     'size' => 300,
                     'required' => true
+                ],
+                [
+                    'type' => 'checkbox',
+                    'label' => $this->l('Notify Rating Captain only about shipped or delivered orders'),
+                    'hint' => $this->l('Only Delivered or Shipped orders will be sent to Rating Captain'),
+                    'name' => 'Ratingcaptain_only_sent',
+                    'values' => array(
+                        'query' => 1,
+                        'id' => 'Ratingcaptain_only_sent',
+                        'name' => 'Ratingcaptain_only_sent',
+                        'value' => '1'
+                    ),
                 ],
                 [
                     'type' => 'checkbox',
@@ -215,6 +237,7 @@ class Ratingcaptain extends Module
 
         // Load current value
         $helper->fields_value['Ratingcaptain_api_key'] = Configuration::get('Ratingcaptain_api_key');
+        $helper->fields_value['Ratingcaptain_only_sent_'] = Configuration::get('Ratingcaptain_only_sent');
         $helper->fields_value['Ratingcaptain_products_'] = Configuration::get('Ratingcaptain_products');
         $helper->fields_value['Ratingcaptain_rates_placeholder'] = Configuration::get('Ratingcaptain_rates_placeholder');
         $helper->fields_value['Ratingcaptain_info_placeholder'] = Configuration::get('Ratingcaptain_info_placeholder');
@@ -222,4 +245,9 @@ class Ratingcaptain extends Module
         return $helper->generateForm($fieldsForm);
     }
 
+    private function prettyDump($value){
+        echo '<pre>';
+        var_dump($value);
+        echo '</pre>';
+    }
 }
