@@ -85,7 +85,7 @@ class Ratingcaptain extends Module
              * @var $order_state \PrestaShop\PrestaShop\Adapter\Entity\OrderState
              */
             $order_state = $hookData['newOrderStatus'];
-            if($order_state->name == 'Delivered' || $order_state->name == 'Shipped'){
+            if($order_state->shipped){
                 $order = new Order($hookData['id_order']);
                 $this->sendToRating($order);
             }
