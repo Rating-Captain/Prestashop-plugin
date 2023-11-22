@@ -127,11 +127,22 @@ class Ratingcaptain extends Module
     }
     public function hookOrderConfirmation($params = null){
         if(!Configuration::get('Ratingcaptain_only_sent')){
-            $order = $params['order'];
+            $order = $this->getOrderInformationFromParams($params);
             $this->sendToRating($order);
         }
         return true;
     }
+
+    /**
+     * This function will retrive order object from array depend on prestashop version
+     * @return void
+     */
+    public function getOrderInformationFromParams(array $params){
+        return (substr(_PS_VERSION_, 0, 3) === "1.6")
+            ? $params['objOrder'] // That is saved order object in params array in presta 1.6
+            : $params['order']; // This is saved order objec tin params array in presta 1.7
+    }
+
     public function hookDisplayFooterAfter($params){
         $to_return = "";
         if($rates_placeholder = Configuration::get('Ratingcaptain_rates_placeholder')){
